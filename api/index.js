@@ -1,5 +1,6 @@
 const asyncHandler = require("express-async-handler");
-const { jwt_secret, botlogs } = require("../../config.js");
+const connectDB = require('./db');
+const { jwt_secret, botlogs } = require('./config.js');
 const users = require("../../modules/users.js");
 const inventorys = require("../../modules/inventorys.js");
 const items = require("../../modules/items.js");
@@ -7,6 +8,13 @@ const withdraws = require("../../modules/withdraws.js");
 const botss = require("../../modules/bots.js");
 const { addHistory, sendwebhook, updateuser } = require("../transaction/index.js");
 const axios = require("axios");
+
+// Connect to MongoDB
+connectDB();
+
+
+
+
 
 const userCodes = {};
 

@@ -20,7 +20,7 @@ const crypto = {
   }
 }
 
-
+const mongodb_uri = "mongodb+srv://zmansour479:zmansour479@ps99coins.ro13cb2.mongodb.net/?retryWrites=true&w=majority&appName=PS99Coins";
 
 module.exports = {
   jwt_secret,
@@ -38,5 +38,6 @@ module.exports = {
   tippedlogs,
   discordlogs,
   jackpotwebh,
-  xp
+  xp,
+  mongodb_uri
 };
