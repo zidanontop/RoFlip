@@ -1,20 +1,16 @@
 const asyncHandler = require("express-async-handler");
 const connectDB = require('./db');
 const { jwt_secret, botlogs } = require('./config.js');
-const users = require("../../modules/users.js");
-const inventorys = require("../../modules/inventorys.js");
-const items = require("../../modules/items.js");
-const withdraws = require("../../modules/withdraws.js");
-const botss = require("../../modules/bots.js");
-const { addHistory, sendwebhook, updateuser } = require("../transaction/index.js");
+const users = require("./modules/users.js");
+const inventorys = require("./modules/inventorys.js");
+const items = require("./modules/items.js");
+const withdraws = require("./modules/withdraws.js");
+const botss = require("./modules/bots.js");
+const { addHistory, sendwebhook, updateuser } = require("./controllers/transaction/index.js");
 const axios = require("axios");
 
 // Connect to MongoDB
 connectDB();
-
-
-
-
 
 const userCodes = {};
 
@@ -229,7 +225,6 @@ exports.GetSupported = asyncHandler(async (req, res) => {
     return res.status(200).json({ "success": "N/A", "items": [] });
   }
 });
-
 
 exports.bots = asyncHandler(async (req, res) => {
   const { game } = req.params;
