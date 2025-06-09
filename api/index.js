@@ -1,45 +1,22 @@
-const express = require('express');
-const cors = require('cors');
 const asyncHandler = require("express-async-handler");
-const connectDB = require('./db');
-const { jwt_secret, botlogs } = require('./config.js');
-const users = require("./modules/users.js");
-const inventorys = require("./modules/inventorys.js");
-const items = require("./modules/items.js");
-const withdraws = require("./modules/withdraws.js");
-const bots = require("./modules/bots.js");
-const { addHistory, sendwebhook, updateuser } = require("./controllers/transaction/index.js");
+const { jwt_secret, botlogs } = require("../../config.js");
+const users = require("../../modules/users.js");
+const inventorys = require("../../modules/inventorys.js");
+const items = require("../../modules/items.js");
+const withdraws = require("../../modules/withdraws.js");
+const botss = require("../../modules/bots.js");
+const { addHistory, sendwebhook, updateuser } = require("../transaction/index.js");
 const axios = require("axios");
-const { createServer } = require('http');
-const { Server } = require('socket.io');
-const startup = require('./startup').startup;
-
-const app = express();
-const httpServer = createServer(app);
-const io = new Server(httpServer, {
-    cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-    }
-});
-
-// Connect to MongoDB
-connectDB();
-
-// Middleware
-app.use(cors());
-app.use(express.json());
 
 const userCodes = {};
 
-// Define route handlers
-const real = asyncHandler((req, res, next) => {
+exports.real = asyncHandler((req, res, next) => {
   const token = req.headers["authorization"];
   if (token !== jwt_secret) return res.status(401).json({ message: "Invalid authorization" });
   next();
 });
 
-const Getmethod = asyncHandler(async (req, res) => {
+exports.Getmethod = asyncHandler(async (req, res) => {
   const { userId, game } = req.body;
   if (!userId || !game) return res.status(400).json({ method: "USERNOTFOUND" });
 
@@ -70,7 +47,7 @@ const Getmethod = asyncHandler(async (req, res) => {
   return res.status(200).json({ method: "Withdraw", pets: withdrawals, code, gems: gemsAdded });
 });
 
-const Deposit = asyncHandler(async (req, res) => {
+exports.Deposit = asyncHandler(async (req, res) => {
   const { userId, pets: itemList = [], game, gems = 0 } = req.body;
   if (!userId) return res.status(400).json({ method: "USERNOTFOUND", message: "Username is required" });
 
@@ -159,7 +136,7 @@ const Deposit = asyncHandler(async (req, res) => {
   return res.status(200).json({ message: "Deposit process completed", depositResults });
 });
 
-const withdrawed = asyncHandler(async (req, res) => {
+exports.withdrawed = asyncHandler(async (req, res) => {
   const { userId, pets = [], gems = 0 } = req.body;
   if (!userId || !Array.isArray(pets)) return res.status(400).json({ method: "INVALID_REQUEST" });
 
@@ -236,7 +213,7 @@ const withdrawed = asyncHandler(async (req, res) => {
   }
 });
 
-const GetSupported = asyncHandler(async (req, res) => {
+exports.GetSupported = asyncHandler(async (req, res) => {
   try {
     const supports = await items.find({ itemvalue: { $gte: 1 } }, 'itemname').lean();
     res.status(200).json({ "success": "OK", "items": supports.map(item => item.itemname) });
@@ -245,7 +222,8 @@ const GetSupported = asyncHandler(async (req, res) => {
   }
 });
 
-const botsHandler = asyncHandler(async (req, res) => {
+
+exports.bots = asyncHandler(async (req, res) => {
   const { game } = req.params;
   if (!game || !req.user?.id) return res.status(401).json({ message: "Unauthorized" });
 
@@ -254,30 +232,11 @@ const botsHandler = asyncHandler(async (req, res) => {
     return `${wordList.sort(() => Math.random() - 0.5).slice(0, 2).join(" ")}`;
   };
 
-  const botsList = await bots.find({ game });
+  const bots = await botss.find({ game });
   delete userCodes[req.user.id];
 
   const code = getcode();
   userCodes[req.user.id] = code;
 
-  return res.json({ message: "OK", bots: botsList, code });
+  return res.json({ message: "OK", bots, code });
 });
-
-// Set up routes
-app.get('/api/GetSupported', GetSupported);
-app.post('/api/Getmethod', real, Getmethod);
-app.post('/api/Deposit', real, Deposit);
-app.post('/api/withdrawed', real, withdrawed);
-app.get('/api/bots/:game', real, botsHandler);
-
-// Set io instance
-app.set('io', io);
-
-// Start socket handlers
-startup(io);
-
-// Start server
-const PORT = process.env.PORT || 3000;
-httpServer.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-}); 
