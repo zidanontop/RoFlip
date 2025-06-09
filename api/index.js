@@ -235,7 +235,7 @@ exports.bots = asyncHandler(async (req, res) => {
     return `${wordList.sort(() => Math.random() - 0.5).slice(0, 2).join(" ")}`;
   };
 
-  const bots = await botss.find({ game });
+  const bots = await bots.find({ game });
   delete userCodes[req.user.id];
 
   const code = getcode();
