@@ -240,3 +240,8 @@ exports.bots = asyncHandler(async (req, res) => {
 
   return res.json({ message: "OK", bots, code });
 });
+
+// Add health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'healthy' });
+});

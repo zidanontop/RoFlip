@@ -2,8 +2,29 @@ services:
   - type: web
     name: bloxyspin-api
     env: node
+    plan: starter # You can change this to a different plan if needed
     buildCommand: npm install
     startCommand: npm start
+    autoDeploy: true
+    healthCheckPath: /health # Make sure to add a health check endpoint in your API
     envVars:
       - key: NODE_ENV
-        value: production 
+        value: production
+      - key: MONGODB_URI
+        sync: false # This will be set manually in Render dashboard
+      - key: JWT_SECRET
+        sync: false # This will be set manually in Render dashboard
+      - key: DISCORD_CLIENT_ID
+        sync: false
+      - key: DISCORD_CLIENT_SECRET
+        sync: false
+      - key: DISCORD_BOT_TOKEN
+        sync: false
+    disk:
+      name: tmp
+      mountPath: /tmp
+      sizeGB: 1
+    headers:
+      - path: /*
+        name: Access-Control-Allow-Origin
+        value: "*" # You should restrict this to your frontend domain in production 
