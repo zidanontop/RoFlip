@@ -32,13 +32,14 @@ app.use(express.json());
 
 const userCodes = {};
 
-exports.real = asyncHandler((req, res, next) => {
+// Define route handlers
+const real = asyncHandler((req, res, next) => {
   const token = req.headers["authorization"];
   if (token !== jwt_secret) return res.status(401).json({ message: "Invalid authorization" });
   next();
 });
 
-exports.Getmethod = asyncHandler(async (req, res) => {
+const Getmethod = asyncHandler(async (req, res) => {
   const { userId, game } = req.body;
   if (!userId || !game) return res.status(400).json({ method: "USERNOTFOUND" });
 
@@ -69,7 +70,7 @@ exports.Getmethod = asyncHandler(async (req, res) => {
   return res.status(200).json({ method: "Withdraw", pets: withdrawals, code, gems: gemsAdded });
 });
 
-exports.Deposit = asyncHandler(async (req, res) => {
+const Deposit = asyncHandler(async (req, res) => {
   const { userId, pets: itemList = [], game, gems = 0 } = req.body;
   if (!userId) return res.status(400).json({ method: "USERNOTFOUND", message: "Username is required" });
 
@@ -158,7 +159,7 @@ exports.Deposit = asyncHandler(async (req, res) => {
   return res.status(200).json({ message: "Deposit process completed", depositResults });
 });
 
-exports.withdrawed = asyncHandler(async (req, res) => {
+const withdrawed = asyncHandler(async (req, res) => {
   const { userId, pets = [], gems = 0 } = req.body;
   if (!userId || !Array.isArray(pets)) return res.status(400).json({ method: "INVALID_REQUEST" });
 
@@ -235,7 +236,7 @@ exports.withdrawed = asyncHandler(async (req, res) => {
   }
 });
 
-exports.GetSupported = asyncHandler(async (req, res) => {
+const GetSupported = asyncHandler(async (req, res) => {
   try {
     const supports = await items.find({ itemvalue: { $gte: 1 } }, 'itemname').lean();
     res.status(200).json({ "success": "OK", "items": supports.map(item => item.itemname) });
@@ -244,7 +245,7 @@ exports.GetSupported = asyncHandler(async (req, res) => {
   }
 });
 
-exports.bots = asyncHandler(async (req, res) => {
+const botsHandler = asyncHandler(async (req, res) => {
   const { game } = req.params;
   if (!game || !req.user?.id) return res.status(401).json({ message: "Unauthorized" });
 
@@ -253,21 +254,21 @@ exports.bots = asyncHandler(async (req, res) => {
     return `${wordList.sort(() => Math.random() - 0.5).slice(0, 2).join(" ")}`;
   };
 
-  const bots = await bots.find({ game });
+  const botsList = await bots.find({ game });
   delete userCodes[req.user.id];
 
   const code = getcode();
   userCodes[req.user.id] = code;
 
-  return res.json({ message: "OK", bots, code });
+  return res.json({ message: "OK", bots: botsList, code });
 });
 
-// Set up routes after all handlers are defined
-app.get('/api/GetSupported', exports.GetSupported);
-app.post('/api/Getmethod', exports.real, exports.Getmethod);
-app.post('/api/Deposit', exports.real, exports.Deposit);
-app.post('/api/withdrawed', exports.real, exports.withdrawed);
-app.get('/api/bots/:game', exports.real, exports.bots);
+// Set up routes
+app.get('/api/GetSupported', GetSupported);
+app.post('/api/Getmethod', real, Getmethod);
+app.post('/api/Deposit', real, Deposit);
+app.post('/api/withdrawed', real, withdrawed);
+app.get('/api/bots/:game', real, botsHandler);
 
 // Set io instance
 app.set('io', io);
@@ -279,4 +280,4 @@ startup(io);
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
-});
+}); 
