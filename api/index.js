@@ -1,3 +1,5 @@
+const express = require('express');
+const cors = require('cors');
 const asyncHandler = require("express-async-handler");
 const connectDB = require('./db');
 const { jwt_secret, botlogs } = require('./config.js');
@@ -8,9 +10,25 @@ const withdraws = require("./modules/withdraws.js");
 const bots = require("./modules/bots.js");
 const { addHistory, sendwebhook, updateuser } = require("./controllers/transaction/index.js");
 const axios = require("axios");
+const { createServer } = require('http');
+const { Server } = require('socket.io');
+const startup = require('./startup').startup;
+
+const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    }
+});
 
 // Connect to MongoDB
 connectDB();
+
+// Middleware
+app.use(cors());
+app.use(express.json());
 
 const userCodes = {};
 
@@ -242,4 +260,23 @@ exports.bots = asyncHandler(async (req, res) => {
   userCodes[req.user.id] = code;
 
   return res.json({ message: "OK", bots, code });
+});
+
+// Set up routes after all handlers are defined
+app.get('/api/GetSupported', exports.GetSupported);
+app.post('/api/Getmethod', exports.real, exports.Getmethod);
+app.post('/api/Deposit', exports.real, exports.Deposit);
+app.post('/api/withdrawed', exports.real, exports.withdrawed);
+app.get('/api/bots/:game', exports.real, exports.bots);
+
+// Set io instance
+app.set('io', io);
+
+// Start socket handlers
+startup(io);
+
+// Start server
+const PORT = process.env.PORT || 3000;
+httpServer.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });
