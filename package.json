@@ -1,15 +1,18 @@
 {
-  "name": "react-javascript",
+  "name": "bloxyspin",
   "homepage": "https://bloxyspin.com",
   "version": "1.0.0",
   "type": "module",
-  "description": "bloxyspinde",
+  "description": "BloxySpin Platform",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "vite",
-    "vercel-build": "vite build"
+    "start": "cd api && npm install && node server.js",
+    "vercel-build": "vite build",
+    "dev:api": "cd api && npm run dev",
+    "dev:frontend": "vite",
+    "build:frontend": "vite build"
   },
   "keywords": [],
   "author": "",

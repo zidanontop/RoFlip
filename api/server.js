@@ -17,7 +17,7 @@ const __dirname = dirname(__filename);
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 10000;
+const port = parseInt(process.env.PORT || '10000', 10);
 
 // Middleware
 app.use(cors());
@@ -63,11 +63,18 @@ app.get('/api/supported', GetSupported);
 app.get('/api/bots/:game', bots);
 
 // Connect to MongoDB
-await connectDB();
+try {
+  await connectDB();
+  console.log('MongoDB connected successfully');
+} catch (error) {
+  console.error('MongoDB connection error:', error);
+  process.exit(1);
+}
 
 // Start the server
 const server = httpServer.listen(port, '0.0.0.0', () => {
   console.log(`Server is running on http://0.0.0.0:${port}`);
+  console.log('Environment:', process.env.NODE_ENV);
   startup(io);
 });
 

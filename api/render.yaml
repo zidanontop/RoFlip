@@ -3,11 +3,8 @@ services:
     name: bloxyspin-api
     env: node
     plan: starter
-    rootDir: api
     buildCommand: npm install
-    startCommand: npm start
-    autoDeploy: true
-    healthCheckPath: /health
+    startCommand: cd api && npm install && node server.js
     envVars:
       - key: NODE_ENV
         value: production
