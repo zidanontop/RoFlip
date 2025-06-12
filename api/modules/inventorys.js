@@ -1,6 +1,5 @@
-const mongoose = require("mongoose");
+import mongoose from 'mongoose';
 const schema = mongoose.Schema;
-
 
 const inventoryschema = new schema({
   itemid: {
@@ -15,8 +14,7 @@ const inventoryschema = new schema({
     type: Boolean,
     required: true,
   }
-})
+});
 
-
-const inventorymodel = mongoose.model("inventorys", inventoryschema);
-module.exports = inventorymodel;
+export const Inventorys = mongoose.model("inventorys", inventoryschema);
+export default Inventorys;

@@ -1,12 +1,12 @@
 import { taxer, jackpotwebh, taxes, taxedItemsWebh } from '../../config.js';
 import Jackpot from '../../modules/jackpots.js';
-import users from '../../modules/users.js';
+import { Users } from '../../modules/users.js';
 import crypto from 'crypto';
 import mongoose from 'mongoose';
 import asyncHandler from 'express-async-handler';
-import InventoryItem from '../../modules/inventorys.js';
+import { Inventorys } from '../../modules/inventorys.js';
 import JackpotEntry from '../../modules/jackpotjoins.js';
-import items from '../../modules/items.js';
+import { Items } from '../../modules/items.js';
 import { addHistory, sendwebhook, updateuser, updatestats, sendnoneembed, level } from '../../transaction/index.js';
 
 function generateRandomSeed() {
@@ -135,7 +135,7 @@ export const join_jackpot = [
           return res.status(400).json({ message: "jackpot is already rolling!" });
         }
 
-        const playerInfo = await users.findOne({ userid: req.user.id })
+        const playerInfo = await Users.findOne({ userid: req.user.id })
           .session(session)
           .exec();
 
@@ -158,7 +158,7 @@ export const join_jackpot = [
         let choosenSum = 0;
 
         for (const chosenItem of req.body.chosenItems) {
-          const exists = await InventoryItem.findOne({
+          const exists = await Inventorys.findOne({
             _id: chosenItem.inventoryid,
             locked: false,
             owner: req.user.id,
@@ -176,7 +176,7 @@ export const join_jackpot = [
             return res.status(409).json({ message: "Item does not belong to you" });
           }
 
-          const item = await items.findOne({ itemid: exists.itemid })
+          const item = await Items.findOne({ itemid: exists.itemid })
             .session(session)
             .exec();
           choosenSum += item.itemvalue || 0;
@@ -201,7 +201,7 @@ export const join_jackpot = [
           return res.status(400).json({ message: "You can only join the jackpot once!" });
         }
 
-        await InventoryItem.deleteMany({ _id: { $in: itemIdsToDelete } }).session(session);
+        await Inventorys.deleteMany({ _id: { $in: itemIdsToDelete } }).session(session);
 
         let updateData = { $inc: { value: choosenSum } };
 
@@ -240,7 +240,7 @@ export const join_jackpot = [
 
         await newEntry.save({ session });
 
-        await users.updateOne(
+        await Users.updateOne(
           { userid: req.user.id },
           { $inc: { wager: choosenSum, lost: choosenSum } },
           { session }
@@ -522,7 +522,7 @@ exports.payflip = asyncHandler(async (req, res, next) => {
     const taxedValue = taxedItems.reduce((sum, item) => sum + item.itemvalue, 0);
 
     for (const item of winnerItems) {
-      const newItem = new InventoryItem({
+      const newItem = new Inventorys({
         _id: item._id,
         itemid: item.itemid,
         owner: activeJackpot.winnerid,
@@ -532,10 +532,10 @@ exports.payflip = asyncHandler(async (req, res, next) => {
     }
 
     if (taxedItems.length > 0) {
-      const taxUser = await users.findOne({ userid: taxer }).session(session);
+      const taxUser = await Users.findOne({ userid: taxer }).session(session);
       if (taxUser) {
         for (const item of taxedItems) {
-          const newItem = new InventoryItem({
+          const newItem = new Inventorys({
             _id: item._id,
             itemid: item.itemid,
             owner: taxUser.userid,
@@ -560,7 +560,7 @@ exports.payflip = asyncHandler(async (req, res, next) => {
       );
     }
 
-    await users.findOneAndUpdate(
+    await Users.findOneAndUpdate(
       { userid: activeJackpot.winnerid },
       { $inc: { won: activeJackpot.value * 2 } }, 
       { session }

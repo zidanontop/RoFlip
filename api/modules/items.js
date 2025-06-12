@@ -1,6 +1,5 @@
-const mongoose = require("mongoose");
+import mongoose from 'mongoose';
 const schema = mongoose.Schema;
-
 
 const itemschema = new schema({
   itemid: {
@@ -23,8 +22,7 @@ const itemschema = new schema({
     type: String,
     required: true
   }
-})
+});
 
-
-const itemmodel = mongoose.model("items", itemschema);
-module.exports = itemmodel;
+export const Items = mongoose.model("items", itemschema);
+export default Items;
