@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
 const jackpotEntrySchema = new Schema({
@@ -10,4 +10,5 @@ const jackpotEntrySchema = new Schema({
   thumbnail: { type: String, required: true },
 });
 
-module.exports = mongoose.model("JackpotEntry", jackpotEntrySchema);
+export const JackpotEntry = mongoose.model("JackpotEntry", jackpotEntrySchema);
+export default JackpotEntry;

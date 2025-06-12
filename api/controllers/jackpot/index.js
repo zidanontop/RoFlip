@@ -1,11 +1,11 @@
 import { taxer, jackpotwebh, taxes, taxedItemsWebh } from '../../config.js';
-import Jackpot from '../../modules/jackpots.js';
+import { Jackpots } from '../../modules/jackpots.js';
 import { Users } from '../../modules/users.js';
 import crypto from 'crypto';
 import mongoose from 'mongoose';
 import asyncHandler from 'express-async-handler';
 import { Inventorys } from '../../modules/inventorys.js';
-import JackpotEntry from '../../modules/jackpotjoins.js';
+import { JackpotEntry } from '../../modules/jackpotjoins.js';
 import { Items } from '../../modules/items.js';
 import { addHistory, sendwebhook, updateuser, updatestats, sendnoneembed, level } from '../../transaction/index.js';
 
@@ -34,7 +34,7 @@ async function startJackpotCountdown(io) {
     const session = await mongoose.startSession();
     try {
       await session.withTransaction(async () => {
-        const activeJackpot = await Jackpot.findOne({ state: "rollingsoon" })
+        const activeJackpot = await Jackpots.findOne({ state: "rollingsoon" })
           .session(session)
           .exec();
 
@@ -71,12 +71,12 @@ async function startJackpotCountdown(io) {
 }
 
 export const startup = async (io) => {
-  const activeJackpots = await Jackpot.find({ 
+  const activeJackpots = await Jackpots.find({ 
     state: { $in: ["rollingsoon"] },
     endsAt: { $exists: true, $ne: null }
   }).exec();
 
-  const otherjackts = await Jackpot.find({ "state": "Waiting" });
+  const otherjackts = await Jackpots.find({ "state": "Waiting" });
 
   if (activeJackpots.length == 0 && otherjackts.length === 0) {
     await exports.create_jackpot({ app: { get: () => io } });
@@ -95,7 +95,7 @@ export const join_jackpot = [
     const session = await mongoose.startSession();
     try {
       await session.withTransaction(async () => {
-        let recentJackpot = await Jackpot.findOne({ state: { $ne: "Ended" } })
+        let recentJackpot = await Jackpots.findOne({ state: { $ne: "Ended" } })
           .session(session)
           .exec();
 
@@ -104,7 +104,7 @@ export const join_jackpot = [
           const serverSeed = generateRandomSeed();
           const hashedServerSeed = crypto.createHash("sha256").update(serverSeed).digest("hex");
 
-          const newJackpot = new Jackpot({
+          const newJackpot = new Jackpots({
             value: 0,
             winnerusername: null,
             winnerid: null,
@@ -223,7 +223,7 @@ export const join_jackpot = [
           }
         }
 
-        await Jackpot.updateOne(
+        await Jackpots.updateOne(
           { _id: recentJackpot._id },
           updateData,
           { session }
@@ -282,7 +282,7 @@ export const join_jackpot = [
 ];
 
 exports.get_jackpot = asyncHandler(async (req, res, next) => {
-  let activeJackpot = await Jackpot.findOne({ state: { $ne: "Ended" } })
+  let activeJackpot = await Jackpots.findOne({ state: { $ne: "Ended" } })
     .sort({ createdAt: -1 })
     .exec();
 
@@ -308,7 +308,7 @@ exports.create_jackpot = asyncHandler(async (req, res, next) => {
   try {
     session.startTransaction();
 
-    const existingJackpot = await Jackpot.findOne({ state: { $ne: "Ended" } })
+    const existingJackpot = await Jackpots.findOne({ state: { $ne: "Ended" } })
       .session(session)
       .exec();
 
@@ -324,7 +324,7 @@ exports.create_jackpot = asyncHandler(async (req, res, next) => {
       .update(serverSeed)
       .digest("hex");
 
-    const newJackpot = new Jackpot({
+    const newJackpot = new Jackpots({
       value: 0,
       winnerusername: null,
       winnerid: null,
@@ -366,7 +366,7 @@ exports.close_jackpot = asyncHandler(async () => {
   try {
     session.startTransaction();
 
-    const activeJackpot = await Jackpot.findOne({ state: { $ne: "Ended" } })
+    const activeJackpot = await Jackpots.findOne({ state: { $ne: "Ended" } })
       .session(session)
       .exec();
 
@@ -376,7 +376,7 @@ exports.close_jackpot = asyncHandler(async () => {
       return;
     }
 
-    await Jackpot.updateOne(
+    await Jackpots.updateOne(
       { _id: activeJackpot._id },
       { state: "Ended" },
       { session }
@@ -397,7 +397,7 @@ exports.play_jackpot = asyncHandler(async (req, res, next) => {
   try {
     session.startTransaction();
 
-    const activeJackpot = await Jackpot.findOne({ state: { $ne: "Ended" } })
+    const activeJackpot = await Jackpots.findOne({ state: { $ne: "Ended" } })
       .session(session)
       .exec();
 
@@ -437,7 +437,7 @@ exports.play_jackpot = asyncHandler(async (req, res, next) => {
       throw new Error("No winner determined");
     }
 
-    await Jackpot.updateOne(
+    await Jackpots.updateOne(
       { _id: activeJackpot._id },
       {
         winnerid: winnerEntry.joinerid,
@@ -495,7 +495,7 @@ exports.payflip = asyncHandler(async (req, res, next) => {
   try {
     session.startTransaction();
 
-    const activeJackpot = await Jackpot.findOne({ state: { $ne: "Ended" } })
+    const activeJackpot = await Jackpots.findOne({ state: { $ne: "Ended" } })
       .session(session)
       .exec();
 
@@ -593,7 +593,7 @@ exports.lock_jackpot = asyncHandler(async () => {
   try {
     session.startTransaction();
 
-    const activeJackpot = await Jackpot.findOne({ state: { $ne: "Ended" } })
+    const activeJackpot = await Jackpots.findOne({ state: { $ne: "Ended" } })
       .session(session)
       .exec();
 

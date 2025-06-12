@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
 const jackpotSchema = new Schema({
@@ -10,9 +10,10 @@ const jackpotSchema = new Schema({
   clientSeed: { type: String },
   endsAt: { type: Date },
   result: { type: Number },
-  inactive: { type: Boolean,},
+  inactive: { type: Boolean },
   state: { type: String, required: true },
   game: { type: String },
 });
 
-module.exports = mongoose.model("Jackpot", jackpotSchema);
+export const Jackpots = mongoose.model("Jackpot", jackpotSchema);
+export default Jackpots;
