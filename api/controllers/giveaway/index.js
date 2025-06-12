@@ -1,16 +1,16 @@
-const asyncHandler = require("express-async-handler");
-const mongoose = require("mongoose");
-const axios = require("axios");
-const users = require("../../modules/users.js");
-const inventorys = require("../../modules/inventorys.js");
-const items = require("../../modules/items.js");
-const history = require("../../modules/history.js");
-const giveaways = require("../../modules/giveaways.js");
-const coinflips = require("../../modules/coinflips.js");
-const giveawayjoins = require("../../modules/giveawayjoins.js");
-const { giveawaywebh } = require("../../config.js");
-const { sendwebhook, addHistory, updateuser } = require("../transaction/index.js");
-const moment = require('moment');
+import asyncHandler from 'express-async-handler';
+import mongoose from 'mongoose';
+import axios from 'axios';
+import users from '../../modules/users.js';
+import inventorys from '../../modules/inventorys.js';
+import items from '../../modules/items.js';
+import history from '../../modules/history.js';
+import giveaways from '../../modules/giveaways.js';
+import coinflips from '../../modules/coinflips.js';
+import giveawayjoins from '../../modules/giveawayjoins.js';
+import { giveawaywebh } from '../../config.js';
+import { sendwebhook, addHistory, updateuser } from '../../transaction/index.js';
+import moment from 'moment';
 
 const rollwinner = async (giveawayid) => {
     if (!giveawayid) {
@@ -145,9 +145,9 @@ async function onstartup(io) {
   }
 }
 
-exports.startup = onstartup;
+export const startup = onstartup;
 
-exports.getgiveaways = asyncHandler(async (req, res) => {
+export const getgiveaways = asyncHandler(async (req, res) => {
     try {
         const activegiveaways = await giveaways.find({
             $or: [
@@ -165,7 +165,7 @@ exports.getgiveaways = asyncHandler(async (req, res) => {
     }
 });
 
-exports.giveaway = asyncHandler(async (req, res) => {
+export const giveaway = asyncHandler(async (req, res) => {
     const session = await mongoose.startSession();
   
     try {
@@ -318,7 +318,7 @@ exports.giveaway = asyncHandler(async (req, res) => {
     }
   });
 
-exports.joingiveaway = asyncHandler(async (req, res) => {
+export const joingiveaway = asyncHandler(async (req, res) => {
     try {
         const { giveawayid } = req.body;
 

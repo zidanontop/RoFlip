@@ -1,13 +1,13 @@
-const { taxer, jackpotwebh, taxes, taxedItemsWebh } = require("../../config");
-const Jackpot = require("../../modules/jackpots");
-const users = require("../../modules/users");
-const crypto = require("crypto");
-const mongoose = require("mongoose");
-const asyncHandler = require("express-async-handler");
-const InventoryItem = require("../../modules/inventorys");
-const JackpotEntry = require("../../modules/jackpotjoins");
-const items = require("../../modules/items");
-const { addHistory, sendwebhook, updateuser, updatestats, sendnoneembed, level } = require("../transaction/index.js");
+import { taxer, jackpotwebh, taxes, taxedItemsWebh } from '../../config.js';
+import Jackpot from '../../modules/jackpots.js';
+import users from '../../modules/users.js';
+import crypto from 'crypto';
+import mongoose from 'mongoose';
+import asyncHandler from 'express-async-handler';
+import InventoryItem from '../../modules/inventorys.js';
+import JackpotEntry from '../../modules/jackpotjoins.js';
+import items from '../../modules/items.js';
+import { addHistory, sendwebhook, updateuser, updatestats, sendnoneembed, level } from '../../transaction/index.js';
 
 function generateRandomSeed() {
   return crypto.randomBytes(16).toString("hex");
@@ -22,7 +22,7 @@ function generateGameResult(clientSeed, serverSeed, totalAmount) {
 
 let jackpotTimeout = null;
 let jackpotCooldown = 120;
-let playing = false
+let playing = false;
 
 // -------------------------------------------
 // Start Jackpot Countdown
@@ -70,29 +70,27 @@ async function startJackpotCountdown(io) {
   }, 1000);
 }
 
-async function startup(io) {
+export const startup = async (io) => {
   const activeJackpots = await Jackpot.find({ 
     state: { $in: ["rollingsoon"] },
     endsAt: { $exists: true, $ne: null }
   }).exec();
 
-  const otherjackts = await Jackpot.find({ "state": "Waiting" })
+  const otherjackts = await Jackpot.find({ "state": "Waiting" });
 
-  if (activeJackpots.length == 0 && otherjackts.length === 0 ) {
-    await exports.create_jackpot({ app: { get: () => io } })
+  if (activeJackpots.length == 0 && otherjackts.length === 0) {
+    await exports.create_jackpot({ app: { get: () => io } });
   }
 
   for (const jackpot of activeJackpots) {
     const endsAt = jackpot.endsAt;
     const remainingTime = endsAt.getTime() - Date.now();
     jackpotCooldown = Math.floor(remainingTime / 1000);
-    startJackpotCountdown(io)
+    startJackpotCountdown(io);
   }
-}
+};
 
-exports.startup = startup;
-
-exports.join_jackpot = [
+export const join_jackpot = [
   asyncHandler(async (req, res, next) => {
     const session = await mongoose.startSession();
     try {

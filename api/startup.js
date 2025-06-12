@@ -1,5 +1,5 @@
-import jackpotController from './controllers/jackpot/index.js';
-import giveawayController from './controllers/giveaway/index.js';
+import * as jackpotController from './controllers/jackpot/index.js';
+import * as giveawayController from './controllers/giveaway/index.js';
 
 export const startup = (io) => {
     console.log("starting");
