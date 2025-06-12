@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
 const coinflipSchema = new Schema({
@@ -55,4 +55,5 @@ const coinflipSchema = new Schema({
   randomSeed: { type: String, required: false },
 });
 
-module.exports = mongoose.model("Coinflips", coinflipSchema);
+export const Coinflips = mongoose.model("Coinflips", coinflipSchema);
+export default Coinflips;

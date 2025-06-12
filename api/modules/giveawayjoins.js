@@ -1,6 +1,5 @@
-const mongoose = require("mongoose");
+import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
-
 
 const giveawayjoins = new Schema({
     userid: {
@@ -13,5 +12,5 @@ const giveawayjoins = new Schema({
     }
 });
 
-const GiveawayJoins = mongoose.model("giveawaysjoins", giveawayjoins);
-module.exports = GiveawayJoins;
+export const GiveawayJoins = mongoose.model("giveawaysjoins", giveawayjoins);
+export default GiveawayJoins;

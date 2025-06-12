@@ -1,13 +1,13 @@
 import asyncHandler from 'express-async-handler';
 import mongoose from 'mongoose';
 import axios from 'axios';
-import users from '../../modules/users.js';
-import inventorys from '../../modules/inventorys.js';
-import items from '../../modules/items.js';
-import history from '../../modules/history.js';
-import giveaways from '../../modules/giveaways.js';
-import coinflips from '../../modules/coinflips.js';
-import giveawayjoins from '../../modules/giveawayjoins.js';
+import { Users } from '../../modules/users.js';
+import { Inventorys } from '../../modules/inventorys.js';
+import { Items } from '../../modules/items.js';
+import { Histories } from '../../modules/histories.js';
+import { Giveaways } from '../../modules/giveaways.js';
+import { Coinflips } from '../../modules/coinflips.js';
+import { GiveawayJoins } from '../../modules/giveawayjoins.js';
 import { giveawaywebh } from '../../config.js';
 import { sendwebhook, addHistory, updateuser } from '../../transaction/index.js';
 import moment from 'moment';
@@ -18,7 +18,7 @@ const rollwinner = async (giveawayid) => {
     }
 
     try {
-        const giveaway = await giveaways.findOne({ "_id": giveawayid });
+        const giveaway = await Giveaways.findOne({ "_id": giveawayid });
 
         if (!giveaway) {
             return "Something went wrong";
@@ -28,7 +28,7 @@ const rollwinner = async (giveawayid) => {
             return "Something went wrong";
         }
 
-        const entries = await giveawayjoins.find({ "giveawayid": giveawayid });
+        const entries = await GiveawayJoins.find({ "giveawayid": giveawayid });
 
         if (!entries || entries.length === 0) {
             return "No participants";
@@ -37,7 +37,7 @@ const rollwinner = async (giveawayid) => {
         const randomIndex = Math.floor(Math.random() * entries.length);
         const winner = entries[randomIndex];
 
-        const winnerUser = await users.findOne({ "userid": winner.userid });
+        const winnerUser = await Users.findOne({ "userid": winner.userid });
 
         if (!winnerUser) {
             return "Something went wrong";
@@ -47,7 +47,7 @@ const rollwinner = async (giveawayid) => {
             return "Something went wrong";
         }
 
-        const itemInventory = new inventorys({
+        const itemInventory = new Inventorys({
             _id: giveaway.item[0].id,
             itemid: giveaway.item[0].itemid,
             owner: winnerUser.userid,
@@ -91,7 +91,7 @@ const rollwinner = async (giveawayid) => {
 
 async function onstartup(io) {
   try {
-      const incompleteGiveaways = await giveaways.find({ complete: false });
+      const incompleteGiveaways = await Giveaways.find({ complete: false });
 
       for (const giveaway of incompleteGiveaways) {
           const endDate = new Date(giveaway.enddate);
@@ -106,7 +106,7 @@ async function onstartup(io) {
               io.emit("GIVEAWAY_UPDATE", giveaway);
               await updateuser(giveaway.winnerid, io);
               setTimeout(async () => {
-                const activegiveaways = await giveaways.find({
+                const activegiveaways = await Giveaways.find({
                     $or: [
                         { complete: false },
                         {
@@ -127,7 +127,7 @@ async function onstartup(io) {
                   io.emit("GIVEAWAY_UPDATE", giveaway);
                   await updateuser(giveaway.winnerid, io);
                   setTimeout(async () => {
-                    const activegiveaways = await giveaways.find({
+                    const activegiveaways = await Giveaways.find({
                         $or: [
                             { complete: false },
                             {
@@ -149,7 +149,7 @@ export const startup = onstartup;
 
 export const getgiveaways = asyncHandler(async (req, res) => {
     try {
-        const activegiveaways = await giveaways.find({
+        const activegiveaways = await Giveaways.find({
             $or: [
                 { complete: false },
                 {
@@ -176,7 +176,7 @@ export const giveaway = asyncHandler(async (req, res) => {
           return res.status(400).json({ message: "Please select items!" });
         }
   
-        const user = await users.findOne({ userid: req.user.id }).session(session);
+        const user = await Users.findOne({ userid: req.user.id }).session(session);
         if (!user) {
           return res.status(401).json({ message: "Unauthorized" });
         }
@@ -189,7 +189,7 @@ export const giveaway = asyncHandler(async (req, res) => {
         let totalItemValue = 0;
   
         for (const item of clientItems) {
-          const inventoryItem = await inventorys
+          const inventoryItem = await Inventorys
             .findOne({ _id: item.inventoryid, owner: req.user.id, locked: false })
             .session(session);
   
@@ -197,14 +197,14 @@ export const giveaway = asyncHandler(async (req, res) => {
             return res.status(400).json({ message: "One or more items can't be used!" });
           }
   
-          const dbItem = await items.findOne({ itemid: inventoryItem.itemid }).session(session);
+          const dbItem = await Items.findOne({ itemid: inventoryItem.itemid }).session(session);
           if (!dbItem) {
             return res.status(400).json({ message: "One or more items can't be used!" });
           }
   
           totalItemValue += dbItem.itemvalue;
   
-          await inventorys.deleteOne({ _id: inventoryItem._id }).session(session);
+          await Inventorys.deleteOne({ _id: inventoryItem._id }).session(session);
   
           validatedItems.push({
             id: inventoryItem.id,
@@ -220,7 +220,7 @@ export const giveaway = asyncHandler(async (req, res) => {
         endDate.setMinutes(endDate.getMinutes() + time);
   
         const giveawaysToSave = validatedItems.map((validatedItem) => {
-          return new giveaways({
+          return new Giveaways({
             starterid: req.user.id,
             starterusername: user.username,
             entries: 0,
@@ -238,7 +238,7 @@ export const giveaway = asyncHandler(async (req, res) => {
           });
         });
   
-        await giveaways.insertMany(giveawaysToSave, { session });
+        await Giveaways.insertMany(giveawaysToSave, { session });
   
         giveawaysToSave.forEach((giveaway) => {
           req.app.get("io").emit("NEW_GIVEAWAY", giveaway);
@@ -273,7 +273,7 @@ export const giveaway = asyncHandler(async (req, res) => {
           );
   
           setTimeout(async () => {
-            const giveawayy = await giveaways.findOne({ _id: giveaway._id });
+            const giveawayy = await Giveaways.findOne({ _id: giveaway._id });
             if (!giveawayy) return;
   
             const winneres = await rollwinner(giveaway._id);
@@ -285,7 +285,7 @@ export const giveaway = asyncHandler(async (req, res) => {
             await updateuser(giveaway.winnerid, req.app.get("io"));
   
             setTimeout(async () => {
-              const activegiveaways = await giveaways.find({
+              const activegiveaways = await Giveaways.find({
                 $or: [
                   { complete: false },
                   {
@@ -326,7 +326,7 @@ export const joingiveaway = asyncHandler(async (req, res) => {
             return res.status(401).json({ message: "Unauthorized" });
         }
 
-        const user = await users.findOne({ "userid": req.user.id });
+        const user = await Users.findOne({ "userid": req.user.id });
 
         if (!user) {
             return res.status(401).json({ message: "Unauthorized" });
@@ -336,13 +336,13 @@ export const joingiveaway = asyncHandler(async (req, res) => {
             return res.status(400).json({ message: "No giveaway specified" });
         }
 
-        const giveaway = await giveaways.findOne({ "_id": giveawayid });
+        const giveaway = await Giveaways.findOne({ "_id": giveawayid });
 
         if (!giveaway || giveaway.complete) {
             return res.status(400).json({ message: "Giveaway not found or already completed" });
         }
 
-        const entry = await giveawayjoins.findOne({ "userid": req.user.id, "giveawayid": giveawayid });
+        const entry = await GiveawayJoins.findOne({ "userid": req.user.id, "giveawayid": giveawayid });
 
         if (entry) {
             return res.status(400).json({ message: "You have already joined this giveaway" });
@@ -352,7 +352,7 @@ export const joingiveaway = asyncHandler(async (req, res) => {
             return res.status(400).json({ message: "you must be at least level 2 to do that!" });
         }
 
-        const entryuser = new giveawayjoins({
+        const entryuser = new GiveawayJoins({
             userid: req.user.id,
             giveawayid: giveawayid,
         });
