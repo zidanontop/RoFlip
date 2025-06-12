@@ -1,4 +1,5 @@
-require('dotenv').config();
+import dotenv from 'dotenv';
+dotenv.config();
 
 const config = {
   jwt_secret: process.env.JWT_SECRET,
@@ -37,4 +38,22 @@ for (const envVar of requiredEnvVars) {
   }
 }
 
-module.exports = config;
+export const {
+  jwt_secret,
+  coinflipwebh,
+  taxedItemsWebh,
+  botlogs,
+  giveawaywebh,
+  tippedlogs,
+  discordlogs,
+  jackpotwebh,
+  taxer,
+  bottoken,
+  clientid,
+  clientsecret,
+  taxes,
+  xp,
+  crypto
+} = config;
+
+export default config;

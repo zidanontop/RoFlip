@@ -1,6 +1,6 @@
 import axios from 'axios';
-import users from '../modules/users.js';
-import histories from '../modules/histories.js';
+import { Users } from '../modules/users.js';
+import { Histories } from '../modules/histories.js';
 
 export const sendwebhook = async (webhookUrl, title, description, fields = [], thumbnail = null) => {
   try {
@@ -26,7 +26,7 @@ export const sendwebhook = async (webhookUrl, title, description, fields = [], t
 
 export const addHistory = async (userId, type, amount) => {
   try {
-    await histories.create({
+    await Histories.create({
       userid: userId,
       type,
       amount,
@@ -39,7 +39,7 @@ export const addHistory = async (userId, type, amount) => {
 
 export const updateuser = async (userId, io) => {
   try {
-    const user = await users.findOne({ userid: userId });
+    const user = await Users.findOne({ userid: userId });
     if (user && io) {
       io.emit('userUpdate', {
         userid: userId,
