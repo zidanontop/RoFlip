@@ -2,10 +2,11 @@
   "name": "bloxyspin",
   "version": "1.0.0",
   "description": "",
-  "dmaiun": "index.js",
+  "main": "server.js",
+  "type": "module",
   "scripts": {
-    "start": "node .",
-    "dev": "nodemon .",
+    "start": "node server.js",
+    "dev": "nodemon server.js",
     "poststart": "echo api running"
   },
   "keywords": [],
