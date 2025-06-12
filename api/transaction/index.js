@@ -24,6 +24,16 @@ export const sendwebhook = async (webhookUrl, title, description, fields = [], t
   }
 };
 
+export const sendnoneembed = async (webhookUrl, description) => {
+  try {
+    await axios.post(webhookUrl, {
+      content: description
+    });
+  } catch (error) {
+    console.error('Error sending webhook:', error);
+  }
+};
+
 export const addHistory = async (userId, type, amount) => {
   try {
     await Histories.create({
@@ -49,5 +59,60 @@ export const updateuser = async (userId, io) => {
     }
   } catch (error) {
     console.error('Error updating user:', error);
+  }
+};
+
+export const updatestats = async (io) => {
+  try {
+    const stats = await Users.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalWager: { $sum: '$wager' },
+          totalWon: { $sum: '$won' },
+          totalLost: { $sum: '$lost' }
+        }
+      }
+    ]);
+
+    if (stats.length > 0 && io) {
+      io.emit('statsUpdate', {
+        wager: stats[0].totalWager,
+        won: stats[0].totalWon,
+        lost: stats[0].totalLost
+      });
+    }
+  } catch (error) {
+    console.error('Error updating stats:', error);
+  }
+};
+
+export const level = async (userId, amount) => {
+  try {
+    const user = await Users.findOne({ userid: userId });
+    if (!user) return;
+
+    const xpGain = Math.floor(amount * 0.005); // 0.5% of amount as XP
+    let newXP = user.xp + xpGain;
+    let newLevel = user.level;
+
+    // Calculate if user should level up
+    // Using a simple formula: next level requires current_level * 1000 XP
+    while (newXP >= newLevel * 1000) {
+      newXP -= newLevel * 1000;
+      newLevel++;
+    }
+
+    await Users.updateOne(
+      { userid: userId },
+      { 
+        $set: { 
+          xp: newXP,
+          level: newLevel
+        }
+      }
+    );
+  } catch (error) {
+    console.error('Error updating level:', error);
   }
 }; 
