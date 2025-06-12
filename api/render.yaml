@@ -4,14 +4,14 @@ services:
     env: node
     plan: starter # You can change this to a different plan if needed
     buildCommand: npm install
-    startCommand: npm start
+    startCommand: node server.js
     autoDeploy: true
     healthCheckPath: /health # Make sure to add a health check endpoint in your API
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 3000
+        value: 10000
       - key: MONGODB_URI
         sync: false # This will be set manually in Render dashboard
       - key: JWT_SECRET

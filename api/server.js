@@ -17,7 +17,7 @@ const __dirname = dirname(__filename);
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 10000;
 
 // Middleware
 app.use(cors());
@@ -63,10 +63,27 @@ app.get('/api/supported', GetSupported);
 app.get('/api/bots/:game', bots);
 
 // Connect to MongoDB
-connectDB();
+await connectDB();
 
 // Start the server
-httpServer.listen(port, '0.0.0.0', () => {
-  console.log(`Server is running on port ${port}`);
+const server = httpServer.listen(port, '0.0.0.0', () => {
+  console.log(`Server is running on http://0.0.0.0:${port}`);
   startup(io);
+});
+
+// Handle server errors
+server.on('error', (error) => {
+  console.error('Server error:', error);
+  if (error.code === 'EADDRINUSE') {
+    console.error(`Port ${port} is already in use`);
+  }
+});
+
+// Handle process termination
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received. Shutting down gracefully...');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
 }); 
