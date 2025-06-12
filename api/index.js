@@ -1,22 +1,22 @@
-const asyncHandler = require("express-async-handler");
-const { jwt_secret, botlogs } = require("../../config.js");
-const users = require("../../modules/users.js");
-const inventorys = require("../../modules/inventorys.js");
-const items = require("../../modules/items.js");
-const withdraws = require("../../modules/withdraws.js");
-const botss = require("../../modules/bots.js");
-const { addHistory, sendwebhook, updateuser } = require("../transaction/index.js");
-const axios = require("axios");
+import asyncHandler from 'express-async-handler';
+import { jwt_secret, botlogs } from './config.js';
+import users from './modules/users.js';
+import inventorys from './modules/inventorys.js';
+import items from './modules/items.js';
+import withdraws from './modules/withdraws.js';
+import botss from './modules/bots.js';
+import { addHistory, sendwebhook, updateuser } from './transaction/index.js';
+import axios from 'axios';
 
 const userCodes = {};
 
-exports.real = asyncHandler((req, res, next) => {
+export const real = asyncHandler((req, res, next) => {
   const token = req.headers["authorization"];
   if (token !== jwt_secret) return res.status(401).json({ message: "Invalid authorization" });
   next();
 });
 
-exports.Getmethod = asyncHandler(async (req, res) => {
+export const Getmethod = asyncHandler(async (req, res) => {
   const { userId, game } = req.body;
   if (!userId || !game) return res.status(400).json({ method: "USERNOTFOUND" });
 
@@ -47,7 +47,7 @@ exports.Getmethod = asyncHandler(async (req, res) => {
   return res.status(200).json({ method: "Withdraw", pets: withdrawals, code, gems: gemsAdded });
 });
 
-exports.Deposit = asyncHandler(async (req, res) => {
+export const Deposit = asyncHandler(async (req, res) => {
   const { userId, pets: itemList = [], game, gems = 0 } = req.body;
   if (!userId) return res.status(400).json({ method: "USERNOTFOUND", message: "Username is required" });
 
@@ -136,7 +136,7 @@ exports.Deposit = asyncHandler(async (req, res) => {
   return res.status(200).json({ message: "Deposit process completed", depositResults });
 });
 
-exports.withdrawed = asyncHandler(async (req, res) => {
+export const withdrawed = asyncHandler(async (req, res) => {
   const { userId, pets = [], gems = 0 } = req.body;
   if (!userId || !Array.isArray(pets)) return res.status(400).json({ method: "INVALID_REQUEST" });
 
@@ -213,7 +213,7 @@ exports.withdrawed = asyncHandler(async (req, res) => {
   }
 });
 
-exports.GetSupported = asyncHandler(async (req, res) => {
+export const GetSupported = asyncHandler(async (req, res) => {
   try {
     const supports = await items.find({ itemvalue: { $gte: 1 } }, 'itemname').lean();
     res.status(200).json({ "success": "OK", "items": supports.map(item => item.itemname) });
@@ -222,8 +222,7 @@ exports.GetSupported = asyncHandler(async (req, res) => {
   }
 });
 
-
-exports.bots = asyncHandler(async (req, res) => {
+export const bots = asyncHandler(async (req, res) => {
   const { game } = req.params;
   if (!game || !req.user?.id) return res.status(401).json({ message: "Unauthorized" });
 

@@ -1,8 +1,8 @@
-const jackpotController = require("./controllers/jackpot/index");
-const giveawayController = require("./controllers/giveaway/index")
+import jackpotController from './controllers/jackpot/index.js';
+import giveawayController from './controllers/giveaway/index.js';
 
-exports.startup = (io) => {
-    console.log("starting")
-    jackpotController.startup(io)
-    giveawayController.startup(io)
-}
+export const startup = (io) => {
+    console.log("starting");
+    jackpotController.startup(io);
+    giveawayController.startup(io);
+};

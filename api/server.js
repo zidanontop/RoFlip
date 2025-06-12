@@ -5,6 +5,13 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { startup } from './startup.js';
 import { connectDB } from './db.js';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import { Getmethod, Deposit, withdrawed, GetSupported, bots, real } from './index.js';
+
+// Get current directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Load environment variables
 dotenv.config();
@@ -43,9 +50,17 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'healthy' });
 });
 
-// Import and use routes
-import routes from './routes/index.js';
-app.use('/api', routes);
+// Root endpoint
+app.get('/', (req, res) => {
+  res.status(200).json({ status: 'API is running' });
+});
+
+// Setup routes
+app.post('/api/getmethod', real, Getmethod);
+app.post('/api/deposit', real, Deposit);
+app.post('/api/withdrawed', real, withdrawed);
+app.get('/api/supported', GetSupported);
+app.get('/api/bots/:game', bots);
 
 // Connect to MongoDB
 connectDB();
