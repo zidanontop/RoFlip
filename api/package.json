@@ -1,13 +1,12 @@
 {
-  "name": "bloxyspin",
+  "name": "bloxyspin-api",
   "version": "1.0.0",
-  "description": "",
+  "description": "BloxySpin API Server",
   "main": "server.js",
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js",
-    "poststart": "echo api running"
+    "dev": "nodemon server.js"
   },
   "keywords": [],
   "author": "",
